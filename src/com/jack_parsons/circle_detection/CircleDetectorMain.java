@@ -9,7 +9,7 @@ import javax.imageio.*;
 
 public class CircleDetectorMain extends Applet {
 	private static final long serialVersionUID = 1L; // to make Eclipse happy
-	private BufferedImage rawImg, greyImg;
+	private BufferedImage rawImg, greyImg, edgeImg;
 
 	public void init() {
 		try {
@@ -17,6 +17,7 @@ public class CircleDetectorMain extends Applet {
 			File file = new File(System.getProperty("user.dir").replace("/bin", "") + "/res/test_circles.png");
 			rawImg = ImageIO.read(file);
 			greyImg = applyGreyScale(rawImg);
+			edgeImg = applyEdgeDetection(greyImg);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -24,7 +25,32 @@ public class CircleDetectorMain extends Applet {
 
 	public void paint(Graphics canvas) {
 		// Draw image
-		canvas.drawImage(greyImg, 0, 0, null);
+		canvas.drawImage(edgeImg, 0, 0, null);
+	}
+	
+	private BufferedImage applyEdgeDetection(BufferedImage originalBufferedImage) {
+		// Iterate through all the pixels in the original image
+		BufferedImage newBufferedImage = new BufferedImage(originalBufferedImage.getWidth(),originalBufferedImage.getHeight(), 1);
+		for (int y = 0; y < originalBufferedImage.getHeight(); y++) {
+			for (int x = 0; x < originalBufferedImage.getWidth(); x++) {
+				int colour = originalBufferedImage.getRGB(x, y);
+				int shade = colour & 0b000000000000000011111111;
+				int net = 9 * shade;
+				for (int y1 = -1; y1 < 2; y1++) {
+					for (int x1 = -1; x1 < 2; x1++) {
+						if (0 <= x + x1 && x + x1 < originalBufferedImage.getWidth() && 0 <= y + y1 && y + y1 < originalBufferedImage.getHeight()){
+							net -= originalBufferedImage.getRGB(x + x1, y + y1) & 0b000000000000000011111111;
+						}
+					}
+				}
+				if (net  > 0){
+					newBufferedImage.setRGB(x, y, net);
+				} else {
+					newBufferedImage.setRGB(x, y, 0);
+				}
+			}
+		}
+		return newBufferedImage;
 	}
 
 	/**
