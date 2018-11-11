@@ -21,8 +21,24 @@ public class CircleDetectorMain extends Applet {
 			greyImg = applyGreyScale(rawImg);
 			edgeImg = applyEdgeDetection(greyImg);
 			for (int[] pos : applyCircleDetection(0.4, 20, 100, edgeImg)) {
-				System.out.printf("%d %d\n", pos[0], pos[1]);
+//				System.out.printf("%d %d\n", pos[0], pos[1]);
 				edgeImg.setRGB(pos[0], pos[1], 255 << 16);
+				for (int x = pos[0] - pos[2]; x < pos[0] + pos[2]; x ++) {
+					if (0 <= pos[1] - pos[2] && pos[1] - pos[2] < edgeImg.getHeight() && 0 < x && x < edgeImg.getWidth()){
+						edgeImg.setRGB(x, pos[1] - pos[2], 255 << 8);
+					}
+					if (0 <= pos[1] + pos[2] && pos[1] + pos[2] < edgeImg.getHeight() && 0 < x && x < edgeImg.getWidth()){
+						edgeImg.setRGB(x, pos[1] + pos[2], 255 << 8);
+					}
+				}
+				for (int y = pos[1] - pos[2]; y < pos[1] + pos[2]; y ++) {
+					if (0 <= pos[0] - pos[2] && pos[0] - pos[2] < edgeImg.getWidth() && 0 < y && y < edgeImg.getHeight()){
+						edgeImg.setRGB(pos[0] - pos[2], y, 255 << 8);
+					}
+					if (0 <= pos[0] + pos[2] && pos[0] + pos[2] < edgeImg.getWidth() && 0 < y && y < edgeImg.getHeight()){
+						edgeImg.setRGB(pos[0] + pos[2], y, 255 << 8);
+					}
+				}
 			}
 			System.out.println("Completed");
 		} catch (IOException e) {
@@ -40,8 +56,8 @@ public class CircleDetectorMain extends Applet {
 		
 		// Loop through all the possible sized radii
 		for (int radius = minRadius; radius < maxRadius; radius ++) {
-			for (int y = 0; y < originalBufferedImage.getHeight(); y ++) {
-				for (int x = 0; x < originalBufferedImage.getWidth(); x++) {
+			for (int y = radius; y < originalBufferedImage.getHeight()-radius; y ++) {
+				for (int x = radius; x < originalBufferedImage.getWidth()-radius; x++) {
 					int votes = 0;
 					int maxVotes = 0;
 					for (float angle = 0; angle < Math.PI; angle += 0.4) {
