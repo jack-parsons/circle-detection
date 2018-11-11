@@ -35,12 +35,10 @@ public class CircleDetectorMain extends Applet {
 			for (int x = 0; x < originalBufferedImage.getWidth(); x++) {
 				int colour = originalBufferedImage.getRGB(x, y);
 				int shade = colour & 0b000000000000000011111111;
-				int net = 9 * shade;
-				for (int y1 = -1; y1 < 2; y1++) {
-					for (int x1 = -1; x1 < 2; x1++) {
-						if (0 <= x + x1 && x + x1 < originalBufferedImage.getWidth() && 0 <= y + y1 && y + y1 < originalBufferedImage.getHeight()){
-							net -= originalBufferedImage.getRGB(x + x1, y + y1) & 0b000000000000000011111111;
-						}
+				int net = 4 * shade;
+				for (int[] offset : new int[][]{{0, 1}, {1, 0}, {-1, 0}, {0, -1}}) {
+					if (0 <= x + offset[0] && x + offset[0] < originalBufferedImage.getWidth() && 0 <= y + offset[1] && y + offset[1] < originalBufferedImage.getHeight()){
+						net -= originalBufferedImage.getRGB(x + offset[0], y + offset[1]) & 0b000000000000000011111111;
 					}
 				}
 				if (net  > 0){
