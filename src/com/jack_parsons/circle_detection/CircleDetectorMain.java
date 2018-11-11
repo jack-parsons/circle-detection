@@ -6,21 +6,25 @@ import java.awt.image.*;
 import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
+import java.awt.Image;
 
 import javax.imageio.*;
 
 public class CircleDetectorMain extends Applet {
 	private static final long serialVersionUID = 1L; // to make Eclipse happy
-	private BufferedImage rawImg, greyImg, edgeImg;
+	private BufferedImage rawImg, greyImg, edgeImg, scaledImg;
 
 	public void init() {
 		try {
 			// Load in image
 			File file = new File(System.getProperty("user.dir").replace("/bin", "") + "/res/test_circles.png");
 			rawImg = ImageIO.read(file);
-			greyImg = applyGreyScale(rawImg);
+			float scale = Math.min((float)300/rawImg.getHeight(), (float)300/rawImg.getWidth());
+			scaledImg = new BufferedImage((int)(rawImg.getWidth() * scale), (int)(rawImg.getHeight() * scale), 1);
+			scaledImg.createGraphics().drawImage(rawImg.getScaledInstance((int)(rawImg.getWidth() * scale), (int)(rawImg.getHeight() * scale), Image.SCALE_FAST), 0, 0, null);
+			greyImg = applyGreyScale(scaledImg);
 			edgeImg = applyEdgeDetection(greyImg);
-			for (int[] pos : applyCircleDetection(0.4, 20, 100, edgeImg)) {
+			for (int[] pos : applyCircleDetection(0.45, 10, 150, edgeImg)) {
 //				System.out.printf("%d %d\n", pos[0], pos[1]);
 				edgeImg.setRGB(pos[0], pos[1], 255 << 16);
 				for (int x = pos[0] - pos[2]; x < pos[0] + pos[2]; x ++) {
@@ -60,12 +64,12 @@ public class CircleDetectorMain extends Applet {
 				for (int x = radius; x < originalBufferedImage.getWidth()-radius; x++) {
 					int votes = 0;
 					int maxVotes = 0;
-					for (float angle = 0; angle < Math.PI; angle += 0.4) {
-						int actualX = (int)(x + radius * Math.cos(angle));
-						int actualY = (int)(y + radius * Math.sin(angle));
-						maxVotes += 255;
+					for (float angle = 0; angle < Math.PI; angle += 0.1) {
+						int actualX = (int)Math.round(x + radius * Math.cos(angle));
+						int actualY = (int)Math.round(y + radius * Math.sin(angle));
 						if (0 <= actualX && actualX < originalBufferedImage.getWidth() && 0 <= actualY && actualY < originalBufferedImage.getHeight()){
 							votes += originalBufferedImage.getRGB(actualX, actualY) & 0b000000000000000011111111;
+							maxVotes += 255;
 						}
 					}
 					if (votes / (float)maxVotes > d) {
